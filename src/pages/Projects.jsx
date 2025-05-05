@@ -108,12 +108,6 @@ export default function Projects() {
                                     🔗 View URLs
                                 </Link>
 
-                                <Link
-                                    to={`/projects/${project._id}/report`}
-                                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                >
-                                    View Report
-                                </Link>
                             </div>
                         </td>
 

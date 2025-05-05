@@ -8,6 +8,8 @@ import Home from "./pages/Home"
 import Projects from "./pages/Projects.jsx"
 import Urls from "./pages/Urls.jsx"
 import ProjectReport from "./pages/ProjectReport.jsx";
+import UrlReport from "./pages/UrlReport.jsx";
+import LogsPage from "./pages/LogsPage.jsx";
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -32,6 +34,8 @@ function App() {
                 <Route path="projects" element={<Projects />} />
                 <Route path="projects/:projectId/urls" element={<Urls />} />
                 <Route path="projects/:projectId/report" element={<ProjectReport />} />
+                <Route path="urls/:urlId/report" element={<UrlReport />} />
+                <Route path="logs" element={<LogsPage />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="settings" element={<Settings />} />
             </Route>
