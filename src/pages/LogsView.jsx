@@ -234,7 +234,7 @@ export default function LogsView() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <FiBarChart2 className="mr-2" />
-                                        {log.score || 'N/A'}
+                                        {log.seoScore || 'N/A'}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">

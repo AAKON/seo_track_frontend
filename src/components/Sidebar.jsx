@@ -12,9 +12,7 @@ export default function Sidebar({ isOpen, onClose }) {
     const menuItems = [
         { path: '', label: 'Home', icon: '🏠' },
         { path: 'projects', label: 'Projects', icon: '📊' },
-        { path: 'logs', label: 'Logs', icon: '📊' },
-        { path: 'analytics', label: 'Analytics', icon: '📊' },
-        { path: 'settings', label: 'Settings', icon: '⚙️' }
+        { path: 'logs', label: 'Logs', icon: '📊' }
     ]
 
     return (

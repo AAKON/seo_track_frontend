@@ -287,6 +287,9 @@ export default function LogsPage() {
                                     Score
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Issues
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -333,7 +336,10 @@ export default function LogsPage() {
                         </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {log.score || 'N/A'}
+                                            {log.seoScore || 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {log.issuesCount || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link

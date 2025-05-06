@@ -2,8 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import { useState } from 'react'
-import Settings from "./pages/Settings"
-import Analytics from "./pages/Analytics"
+
 import Home from "./pages/Home"
 import Projects from "./pages/Projects.jsx"
 import Urls from "./pages/Urls.jsx"
@@ -36,8 +35,6 @@ function App() {
                 <Route path="projects/:projectId/report" element={<ProjectReport />} />
                 <Route path="urls/:urlId/report" element={<UrlReport />} />
                 <Route path="logs" element={<LogsPage />} />
-                <Route path="analytics" element={<Analytics />} />
-                <Route path="settings" element={<Settings />} />
             </Route>
 
             <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
