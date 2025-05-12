@@ -1,0 +1,298 @@
+import React, { useState, useEffect } from 'react';
+import { Bar, Line } from 'react-chartjs-2';
+import { chartOptions } from './chartConfig';
+import axios from 'axios';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+
+const Home = () => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [dashboardData, setDashboardData] = useState(null);
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [projectData, setProjectData] = useState(null);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('/api/dashboard');
+            setDashboardData(response.data.data);
+            setLoading(false);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Error fetching dashboard data');
+            setLoading(false);
+        }
+    };
+
+    const fetchProjectData = async (projectId) => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`/api/dashboard/project/${projectId}`);
+            setProjectData(response.data.data);
+            setSelectedProject(projectId);
+            setLoading(false);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Error fetching project data');
+            setLoading(false);
+        }
+    };
+
+    if (loading) return (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+            <p>{error}</p>
+        </div>
+    );
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'success': return 'bg-green-100 text-green-800';
+            case 'error': return 'bg-red-100 text-red-800';
+            case 'critical': return 'bg-red-100 text-red-800';
+            case 'warning': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-blue-100 text-blue-800';
+        }
+    };
+
+    // Prepare chart data
+    const scoreDistributionData = {
+        labels: ['0-30', '31-60', '61-80', '81-90', '91-100'],
+        datasets: [{
+            label: 'URL Count',
+            data: dashboardData?.scoreDistribution?.map(b => b.count) || [],
+            backgroundColor: [
+                '#ef4444',
+                '#f59e0b',
+                '#3b82f6',
+                '#10b981',
+                '#8b5cf6'
+            ]
+        }]
+    };
+
+    const scoreTrendData = projectData ? {
+        labels: projectData.scoreTrend.map(d => d._id),
+        datasets: [{
+            label: 'Average SEO Score',
+            data: projectData.scoreTrend.map(d => d.avgScore),
+            fill: false,
+            backgroundColor: '#3b82f6',
+            borderColor: '#3b82f6',
+            tension: 0.1
+        }]
+    } : null;
+
+    return (
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-6">SEO Dashboard</h1>
+
+            {!selectedProject ? (
+                <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-gray-500 text-sm font-medium">Projects</h3>
+                            <p className="text-3xl font-bold">{dashboardData.projectCount}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-gray-500 text-sm font-medium">URLs Monitored</h3>
+                            <p className="text-3xl font-bold">{dashboardData.urlCount}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-gray-500 text-sm font-medium">Average SEO Score</h3>
+                            <p className="text-3xl font-bold">
+                                {dashboardData.latestReports.length > 0
+                                    ? Math.round(dashboardData.latestReports.reduce((acc, report) => acc + (report.seoScore || 0), 0) / dashboardData.latestReports.length) + '%'
+                                    : 'N/A'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Charts Row */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h2 className="text-lg font-medium mb-4">SEO Score Distribution</h2>
+                            <div className="h-64">
+                                <Bar
+                                    data={scoreDistributionData}
+                                    options={chartOptions}
+                                    height={256}
+                                />
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h2 className="text-lg font-medium mb-4">Common Issues</h2>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Type</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.commonIssues.map((issue, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{issue._id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{issue.count}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(issue._id)}`}>
+                                                        {issue._id.toUpperCase()}
+                                                    </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recent Reports */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h2 className="text-lg font-medium mb-4">Recent Reports</h2>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SEO Score</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                {dashboardData.latestReports.map((report) => (
+                                    <tr
+                                        key={report._id}
+                                        className="hover:bg-gray-50 cursor-pointer"
+                                        onClick={() => fetchProjectData(report.projectId._id)}
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-800">
+                                            {report.urlId?.url || 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {report.projectId?.name || 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div
+                                                        className={`h-2.5 rounded-full ${
+                                                            report.seoScore >= 80 ? 'bg-green-500' :
+                                                                report.seoScore >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                                                        }`}
+                                                        style={{ width: `${report.seoScore}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="ml-2 text-sm text-gray-600">{report.seoScore}%</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(report.status)}`}>
+                                                    {report.status.toUpperCase()}
+                                                </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(report.createdAt).toLocaleString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <button
+                        onClick={() => setSelectedProject(null)}
+                        className="flex items-center mb-6 text-blue-600 hover:text-blue-800"
+                    >
+                        <ArrowLeftIcon className="h-5 w-5 mr-1" />
+                        Back to Dashboard
+                    </button>
+
+                    <h2 className="text-xl font-bold mb-6">{projectData.project.name}</h2>
+
+                    <div className="grid grid-cols-1 gap-6 mb-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h2 className="text-lg font-medium mb-4">SEO Score Trend</h2>
+                            <div className="h-64">
+                                <Line
+                                    data={scoreTrendData}
+                                    options={{
+                                        ...chartOptions,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: false,
+                                                min: 0,
+                                                max: 100
+                                            }
+                                        }
+                                    }}
+                                    height={256}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h2 className="text-lg font-medium mb-4">URLs in Project</h2>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Checked</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                {projectData.urls.map((url) => {
+                                    const latestReport = projectData.reports.find(r => r.urlId._id === url._id);
+                                    return (
+                                        <tr key={url._id}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-800">
+                                                <a href={url.url} target="_blank" rel="noopener noreferrer">
+                                                    {url.url}
+                                                </a>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {url.lastCheckedAt ? new Date(url.lastCheckedAt).toLocaleString() : 'Never'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {latestReport ? (
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(latestReport.status)}`}>
+                                                            {latestReport.status.toUpperCase()}
+                                                        </span>
+                                                ) : (
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                            NOT CHECKED
+                                                        </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+export default Home;
