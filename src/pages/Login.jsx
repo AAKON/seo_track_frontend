@@ -22,7 +22,7 @@ export default function Login({ setIsAuthenticated }) {
 
             localStorage.setItem('token', response.data.token)
             setIsAuthenticated(true)
-            navigate('/dashboard')
+            navigate('/')
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please try again.')
             console.error('Login error:', err)

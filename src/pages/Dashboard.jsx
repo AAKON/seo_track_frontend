@@ -8,8 +8,9 @@ export default function Dashboard({ setIsAuthenticated }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
     const handleLogout = () => {
-        setIsAuthenticated(false)
-    }
+        setIsAuthenticated(false);
+        localStorage.clear();  // Clears all localStorage data
+    };
 
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev)
